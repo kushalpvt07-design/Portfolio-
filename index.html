@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kushal R Gowda - Interactive Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+            cursor: none; /* Custom cursor */
+        }
+
+        /* Animated Background Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+
+        /* Glassmorphism Cards */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom Cursor */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #38bdf8;
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(56, 189, 248, 0.5);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        /* Profile Image Glow */
+        .profile-glow {
+            position: relative;
+        }
+        
+        .profile-glow::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            background: linear-gradient(45deg, #38bdf8, #818cf8, #c084fc);
+            border-radius: 50%;
+            z-index: -1;
+            animation: spin 4s linear infinite;
+            filter: blur(10px);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Scroll Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hover Effects */
+        .skill-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #38bdf8;
+        }
+
+        /* Modal Styles */
+        .modal-base {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-base.hidden-modal {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .modal-base.visible-modal {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Custom Cursor Elements -->
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <!-- Background Animation -->
+    <canvas id="canvas-container"></canvas>
+
+    <!-- Main Content -->
+    <main class="relative min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+        
+        <!-- Profile Section -->
+        <section class="w-full max-w-4xl mx-auto mt-10 mb-20">
+            <div class="glass-panel rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-10 reveal active">
+                
+                <!-- Photo Container (Static) -->
+                <div class="relative group">
+                    <div class="w-40 h-40 md:w-56 md:h-56 rounded-full profile-glow p-1 bg-slate-900 overflow-hidden relative">
+                        <img id="profileImage" src="photo.png" alt="Profile" class="w-full h-full object-cover rounded-full transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                </div>
+
+                <!-- Text Content -->
+                <div class="text-center md:text-left flex-1">
+                    <div class="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-sky-400 uppercase bg-sky-400/10 rounded-full border border-sky-400/20">
+                        My Profile
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-bold mb-2 tracking-tight">
+                        I am <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-purple-500">Kushal R Gowda</span>
+                    </h1>
+                    <h2 class="text-xl md:text-2xl text-slate-300 mb-6 h-8">
+                        <span id="typewriter"></span><span class="animate-pulse">|</span>
+                    </h2>
+                    <p class="text-slate-400 leading-relaxed mb-8 max-w-lg mx-auto md:mx-0">
+                        Code enthusiast and 3rd-year innovator at Malnad College of Engineering. Bridging the gap between complex algorithms and intuitive user experiences.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                        <button onclick="openModal('contactModal')" class="px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 rounded-full font-semibold hover:shadow-[0_0_20px_rgba(56,189,248,0.5)] transition-all duration-300 transform hover:-translate-y-1">
+                            Contact Me
+                        </button>
+                        <!-- DOWNLOAD CV BUTTON UPDATED -->
+                        <button onclick="generateCV()" class="px-8 py-3 glass-panel rounded-full font-semibold hover:bg-white/10 transition-all duration-300 flex items-center gap-2">
+                            <i class="fas fa-download text-sm"></i> Download CV
+                        </button>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="flex gap-6 mt-8 justify-center md:justify-start">
+                        <button onclick="openSocialModal('github')" title="GitHub" class="text-slate-400 hover:text-white transition-colors hover:scale-125 transform duration-200"><i class="fab fa-github text-xl"></i></button>
+                        <button onclick="openSocialModal('twitter')" title="Twitter" class="text-slate-400 hover:text-blue-400 transition-colors hover:scale-125 transform duration-200"><i class="fab fa-twitter text-xl"></i></button>
+                        <button onclick="openSocialModal('instagram')" title="Instagram" class="text-slate-400 hover:text-pink-500 transition-colors hover:scale-125 transform duration-200"><i class="fab fa-instagram text-xl"></i></button>
+                        <button onclick="openSocialModal('linkedin')" title="LinkedIn" class="text-slate-400 hover:text-blue-600 transition-colors hover:scale-125 transform duration-200"><i class="fab fa-linkedin text-xl"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats / Skills Section -->
+        <section class="w-full max-w-4xl mx-auto mb-20">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1: AI Engineering -->
+                <div class="glass-panel p-6 rounded-2xl reveal skill-card">
+                    <div class="w-12 h-12 bg-sky-500/20 rounded-xl flex items-center justify-center mb-4 text-sky-400">
+                        <i class="fas fa-brain text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">AI Engineering</h3>
+                    <p class="text-slate-400 text-sm">Commanding the chaos of generative AI: Expert in Prompt Engineering and LLMs, turning abstract concepts into precise, intelligent outputs.</p>
+                </div>
+                
+                <!-- Card 2: Design -->
+                <div class="glass-panel p-6 rounded-2xl reveal skill-card" style="transition-delay: 100ms">
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4 text-purple-400">
+                        <i class="fas fa-paint-brush text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Design</h3>
+                    <p class="text-slate-400 text-sm">Sculpting seamless UI/UX journeys where user empathy meets the pixel-perfect precision of Figma.</p>
+                </div>
+
+                <!-- Card 3: Optimization -->
+                <div class="glass-panel p-6 rounded-2xl reveal skill-card" style="transition-delay: 200ms">
+                    <div class="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-4 text-pink-400">
+                        <i class="fas fa-rocket text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Optimization</h3>
+                    <p class="text-slate-400 text-sm">Ensuring websites are fast, accessible, and SEO optimized for best performance.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full py-6 text-center text-slate-500 text-sm glass-panel mt-auto">
+        <p>© 2024 Kushal R Gowda's Portfolio.</p>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal-base hidden-modal fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModal('contactModal')"></div>
+        <div class="glass-panel w-full max-w-md p-8 rounded-2xl relative transform transition-all scale-100 shadow-2xl border border-sky-500/30">
+            <button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-tr from-sky-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-sky-500/20">
+                    <i class="fas fa-university text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white">Contact Info</h3>
+                <p class="text-slate-400 text-sm mt-1">Malnad College of Engineering</p>
+            </div>
+            <div class="space-y-6">
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    <div class="mt-1 text-sky-400"><i class="fas fa-map-marker-alt text-lg"></i></div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-slate-200">College Address</h4>
+                        <p class="text-slate-400 text-sm mt-1">No 21, Salagame Rd, Rangoli Halla,<br>Hassan, Karnataka 573202</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    <div class="mt-1 text-green-400"><i class="fas fa-phone-alt text-lg"></i></div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-slate-200">Contact Number</h4>
+                        <p class="text-slate-400 text-sm mt-1 select-all font-mono">+91 8172 245317</p>
+                        <p class="text-xs text-slate-500 mt-1">Principal's Office</p>
+                    </div>
+                </div>
+                 <div class="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    <div class="mt-1 text-purple-400"><i class="fas fa-mobile-alt text-lg"></i></div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-slate-200">Personal Contact</h4>
+                        <p class="text-slate-400 text-sm mt-1 select-all font-mono">9380163399</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <button onclick="closeModal('contactModal')" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-colors text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Media Modal -->
+    <div id="socialModal" class="modal-base hidden-modal fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeModal('socialModal')"></div>
+        <div class="glass-panel w-full max-w-sm rounded-3xl relative transform transition-all scale-100 shadow-2xl border border-white/10 overflow-hidden">
+            <button onclick="closeModal('socialModal')" class="absolute top-4 right-4 text-white/50 hover:text-white z-10 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div id="socialContent" class="p-8"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Modal Logic ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden-modal');
+            modal.classList.add('visible-modal');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('visible-modal');
+            modal.classList.add('hidden-modal');
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal('contactModal');
+                closeModal('socialModal');
+            }
+        });
+
+        // --- Social Media Logic ---
+        const socialProfiles = {
+            github: { name: 'Kushal R Gowda', handle: '@kushal_codes', icon: 'fa-github', bgGradient: 'bg-slate-800', btnColor: 'bg-slate-700 hover:bg-slate-600', textColor: 'text-slate-400', bio: 'Pushing code and breaking limits. Exploring AI & Web3.', stats: [{ label: 'Repos', value: '45' }, { label: 'Stars', value: '128' }, { label: 'Commits', value: '1.2k' }] },
+            twitter: { name: 'Kushal R Gowda', handle: '@kushal_dev', icon: 'fa-twitter', bgGradient: 'bg-blue-500', btnColor: 'bg-blue-500 hover:bg-blue-600', textColor: 'text-blue-200', bio: 'Engineering student @ MCE. Tweeting about code, coffee, and tech.', stats: [{ label: 'Tweets', value: '342' }, { label: 'Following', value: '250' }, { label: 'Followers', value: '890' }] },
+            instagram: { name: 'Kushal R Gowda', handle: '@kushal.pixels', icon: 'fa-instagram', bgGradient: 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500', btnColor: 'bg-pink-600 hover:bg-pink-700', textColor: 'text-pink-200', bio: 'Capturing moments | Developer Life | Travel & Tech', stats: [{ label: 'Posts', value: '87' }, { label: 'Followers', value: '1.5k' }, { label: 'Following', value: '420' }] },
+            linkedin: { name: 'Kushal R Gowda', handle: 'Student at MCE', icon: 'fa-linkedin-in', bgGradient: 'bg-blue-700', btnColor: 'bg-blue-700 hover:bg-blue-800', textColor: 'text-blue-200', bio: '3rd Year Engineering Student | Full Stack Developer | Open to Opportunities', stats: [{ label: 'Connects', value: '500+' }, { label: 'Views', value: '240' }, { label: 'Posts', value: '15' }] }
+        };
+
+        function openSocialModal(platform) {
+            const data = socialProfiles[platform];
+            const contentDiv = document.getElementById('socialContent');
+            contentDiv.innerHTML = `
+                <div class="text-center relative">
+                    <div class="w-24 h-24 ${data.bgGradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_30px_rgba(0,0,0,0.3)] border-4 border-slate-800"><i class="fab ${data.icon} text-4xl text-white"></i></div>
+                    <h3 class="text-2xl font-bold text-white tracking-tight">${data.name}</h3>
+                    <p class="${data.textColor} text-sm font-medium mb-6">${data.handle}</p>
+                    <div class="glass-panel p-4 rounded-xl mb-6 bg-white/5 border border-white/5"><p class="text-slate-300 text-sm italic leading-relaxed">"${data.bio}"</p></div>
+                    <div class="grid grid-cols-3 gap-2 mb-8 divide-x divide-white/10">${data.stats.map(stat => `<div class="text-center px-2"><div class="font-bold text-white text-lg">${stat.value}</div><div class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">${stat.label}</div></div>`).join('')}</div>
+                    <button class="w-full py-3 ${data.btnColor} rounded-xl font-bold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">View Profile</button>
+                </div>`;
+            openModal('socialModal');
+        }
+
+        // --- CV Generation Logic ---
+        function generateCV() {
+            const cvWindow = window.open('', '_blank');
+            
+            // Use local file 'photo.png' explicitly for the CV
+            const profileSrc = "photo.png";
+
+            const cvContent = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Kushal R Gowda - Resume</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+                        body { font-family: 'Inter', sans-serif; background: white; color: #1e293b; -webkit-print-color-adjust: exact; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body class="p-8 max-w-4xl mx-auto">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center border-b-2 border-slate-800 pb-6 mb-8">
+                        <div class="flex items-center gap-6">
+                            <!-- Profile Photo -->
+                            <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-200 shrink-0">
+                                <img src="${profileSrc}" class="w-full h-full object-cover" alt="Profile Photo">
+                            </div>
+                            <div>
+                                <h1 class="text-4xl font-bold text-slate-900 tracking-tight">Kushal R Gowda</h1>
+                                <p class="text-lg text-slate-600 mt-1 font-medium">AI Engineer & Full Stack Developer</p>
+                                <p class="text-sm text-slate-500 mt-2 max-w-md">3rd Year Engineering Student at Malnad College of Engineering with a passion for Generative AI and scalable software architectures.</p>
+                            </div>
+                        </div>
+                        <div class="text-right text-sm text-slate-600 space-y-1">
+                            <p><i class="fas fa-phone mr-2"></i>9380163399</p>
+                            <p><i class="fas fa-envelope mr-2"></i>kushal@example.com</p>
+                            <p><i class="fas fa-map-marker-alt mr-2"></i>Hassan, Karnataka</p>
+                            <p><i class="fab fa-github mr-2"></i>github.com/kushal_codes</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-8">
+                        <!-- Left Column -->
+                        <div class="col-span-2 space-y-8">
+                            <!-- Education -->
+                            <section>
+                                <h2 class="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">Education</h2>
+                                <div class="mb-4">
+                                    <div class="flex justify-between items-baseline">
+                                        <h3 class="font-bold text-lg text-slate-900">Malnad College of Engineering</h3>
+                                        <span class="text-sm font-semibold text-slate-500">2021 - Present</span>
+                                    </div>
+                                    <p class="text-slate-700 italic">Bachelor of Engineering (3rd Year)</p>
+                                    <ul class="list-disc list-inside text-sm text-slate-600 mt-2 ml-1">
+                                        <li>Major: Computer Science & Engineering</li>
+                                        <li>Active Member of College Tech Club</li>
+                                    </ul>
+                                </div>
+                            </section>
+
+                            <!-- Experience / Projects -->
+                            <section>
+                                <h2 class="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">Technical Expertise</h2>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h3 class="font-bold text-slate-900">AI & Prompt Engineering</h3>
+                                        <p class="text-sm text-slate-600 mt-1">Specialized in crafting complex prompts for Large Language Models (LLMs) to optimize output accuracy and creativity. Experience fine-tuning open-source models (Llama, Mistral) for specific domain tasks.</p>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-900">Full Stack Development</h3>
+                                        <p class="text-sm text-slate-600 mt-1">Building responsive web applications using React, Tailwind CSS, and Node.js. Focus on creating "Glassmorphism" UI designs and interactive animations.</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Hobbies -->
+                            <section>
+                                <h2 class="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">Computer Engg. Interests</h2>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-slate-100 p-3 rounded-lg border border-slate-200">
+                                        <h4 class="font-bold text-slate-800 text-sm mb-1"><i class="fas fa-robot text-indigo-500 mr-2"></i>Fine-Tuning LLMs</h4>
+                                        <p class="text-xs text-slate-600">Experimenting with local LLM deployment and RAG architectures.</p>
+                                    </div>
+                                    <div class="bg-slate-100 p-3 rounded-lg border border-slate-200">
+                                        <h4 class="font-bold text-slate-800 text-sm mb-1"><i class="fas fa-code-branch text-green-500 mr-2"></i>Open Source</h4>
+                                        <p class="text-xs text-slate-600">Contributing to developer tools and community documentation.</p>
+                                    </div>
+                                    <div class="bg-slate-100 p-3 rounded-lg border border-slate-200">
+                                        <h4 class="font-bold text-slate-800 text-sm mb-1"><i class="fas fa-microchip text-red-500 mr-2"></i>IoT & Automation</h4>
+                                        <p class="text-xs text-slate-600">Building home automation scripts using Python and Raspberry Pi.</p>
+                                    </div>
+                                    <div class="bg-slate-100 p-3 rounded-lg border border-slate-200">
+                                        <h4 class="font-bold text-slate-800 text-sm mb-1"><i class="fas fa-keyboard text-yellow-500 mr-2"></i>Competitive Coding</h4>
+                                        <p class="text-xs text-slate-600">Solving algorithmic challenges on LeetCode and HackerRank.</p>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="space-y-8">
+                            <!-- Skills -->
+                            <section>
+                                <h2 class="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">Skills</h2>
+                                <div class="space-y-2">
+                                    <span class="inline-block bg-slate-900 text-white px-3 py-1 text-sm rounded-full mr-1 mb-1">Python</span>
+                                    <span class="inline-block bg-slate-900 text-white px-3 py-1 text-sm rounded-full mr-1 mb-1">JavaScript</span>
+                                    <span class="inline-block bg-slate-900 text-white px-3 py-1 text-sm rounded-full mr-1 mb-1">React.js</span>
+                                    <span class="inline-block bg-slate-900 text-white px-3 py-1 text-sm rounded-full mr-1 mb-1">HTML/CSS</span>
+                                    <span class="inline-block bg-slate-900 text-white px-3 py-1 text-sm rounded-full mr-1 mb-1">Figma</span>
+                                    <span class="inline-block bg-slate-900 text-white px-3 py-1 text-sm rounded-full mr-1 mb-1">Git/GitHub</span>
+                                    <span class="inline-block bg-slate-900 text-white px-3 py-1 text-sm rounded-full mr-1 mb-1">Prompt Engg.</span>
+                                </div>
+                            </section>
+
+                            <!-- Languages -->
+                            <section>
+                                <h2 class="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">Languages</h2>
+                                <ul class="space-y-2 text-sm text-slate-700">
+                                    <li class="flex justify-between"><span>English</span> <span class="font-semibold">Fluent</span></li>
+                                    <li class="flex justify-between"><span>Kannada</span> <span class="font-semibold">Native</span></li>
+                                    <li class="flex justify-between"><span>Hindi</span> <span class="font-semibold">Intermediate</span></li>
+                                </ul>
+                            </section>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        // Auto-print when opened
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `;
+            cvWindow.document.write(cvContent);
+            cvWindow.document.close();
+        }
+
+        // --- Custom Cursor Logic ---
+        const cursorDot = document.querySelector('[data-cursor-dot]');
+        const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+        window.addEventListener("mousemove", function (e) {
+            const posX = e.clientX;
+            const posY = e.clientY;
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+            cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+        });
+
+        const interactiveElements = document.querySelectorAll('a, button, input, .group');
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorOutline.style.width = '60px';
+                cursorOutline.style.height = '60px';
+                cursorOutline.style.backgroundColor = 'rgba(56, 189, 248, 0.1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorOutline.style.width = '40px';
+                cursorOutline.style.height = '40px';
+                cursorOutline.style.backgroundColor = 'transparent';
+            });
+        });
+
+        // --- Typewriter Effect ---
+        const texts = ["Engineering Student", "Malnad College of Engineering", "3rd Year Undergrad", "Skilled Coder","AI Prompt Enthu"];
+        let count = 0;
+        let index = 0;
+        let currentText = "";
+        let letter = "";
+
+        (function type() {
+            if (count === texts.length) { count = 0; }
+            currentText = texts[count];
+            letter = currentText.slice(0, ++index);
+            document.getElementById('typewriter').textContent = letter;
+            if (letter.length === currentText.length) {
+                setTimeout(() => { count++; index = 0; }, 2000);
+            } 
+            setTimeout(type, letter.length === currentText.length ? 2000 : 100);
+        })();
+
+        // --- Scroll Reveal ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) { entry.target.classList.add('active'); }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // --- Particle Background ---
+        const canvas = document.getElementById("canvas-container");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particlesArray;
+        let mouse = { x: null, y: null, radius: (canvas.height/80) * (canvas.width/80) }
+
+        window.addEventListener('mousemove', function(event) { mouse.x = event.x; mouse.y = event.y; });
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y; this.directionX = directionX; this.directionY = directionY; this.size = size; this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) { this.directionX = -this.directionX; }
+                if (this.y > canvas.height || this.y < 0) { this.directionY = -this.directionY; }
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < mouse.radius + this.size){
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) { this.x += 10; }
+                    if (mouse.x > this.x && this.x > this.size * 10) { this.x -= 10; }
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) { this.y += 10; }
+                    if (mouse.y > this.y && this.y > this.size * 10) { this.y -= 10; }
+                }
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 2) - 1;
+                let directionY = (Math.random() * 2) - 1;
+                let color = '#38bdf8';
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0,0,innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            connect();
+        }
+
+        function connect(){
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = (( particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(56, 189, 248,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('resize', function(){
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            mouse.radius = ((canvas.height/80) * (canvas.height/80));
+            init();
+        });
+
+        window.addEventListener('mouseout', function(){ mouse.x = undefined; mouse.x = undefined; })
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
